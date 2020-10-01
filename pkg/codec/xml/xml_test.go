@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"strings"
 	"testing"
 
@@ -130,7 +131,7 @@ func TestMarshal(t *testing.T) {
 
 	for title, test := range tests {
 		t.Run(title, func(t *testing.T) {
-			manager, err := constructor.New("mock", SchemaObject)
+			manager, err := constructor.New("mock", SchemaComplexObject)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -181,11 +182,14 @@ func TestUnmarshal(t *testing.T) {
 				"<integer><unexpected></integer>",
 			),
 			schema: SchemaScalar,
-			error: errUnexpectedToken{
-				actual: xml.StartElement{},
-				expected: []xml.Token{
-					xml.CharData{},
-					xml.EndElement{},
+			error: errFailedToDecodeProperty{
+				property: "integer",
+				inner: errUnexpectedToken{
+					actual: xml.StartElement{},
+					expected: []xml.Token{
+						xml.CharData{},
+						xml.EndElement{},
+					},
 				},
 			},
 		},
@@ -194,10 +198,13 @@ func TestUnmarshal(t *testing.T) {
 				"<integer>42<unexpected></integer>",
 			),
 			schema: SchemaScalar,
-			error: errUnexpectedToken{
-				actual: xml.StartElement{},
-				expected: []xml.Token{
-					xml.EndElement{},
+			error: errFailedToDecodeProperty{
+				property: "integer",
+				inner: errUnexpectedToken{
+					actual: xml.StartElement{},
+					expected: []xml.Token{
+						xml.EndElement{},
+					},
 				},
 			},
 		},
@@ -206,7 +213,10 @@ func TestUnmarshal(t *testing.T) {
 				"<integer>foo</integer>",
 			),
 			schema: SchemaScalar,
-			error:  errors.New(`strconv.ParseInt: parsing "foo": invalid syntax`),
+			error: errFailedToDecodeProperty{
+				property: "integer",
+				inner:    errors.New(`strconv.ParseInt: parsing "foo": invalid syntax`),
+			},
 		},
 		"scalar with empty value": {
 			input: strings.NewReader(
@@ -235,11 +245,14 @@ func TestUnmarshal(t *testing.T) {
 				"<status><unexpected></status>",
 			),
 			schema: SchemaEnum,
-			error: errUnexpectedToken{
-				actual: xml.StartElement{},
-				expected: []xml.Token{
-					xml.CharData{},
-					xml.EndElement{},
+			error: errFailedToDecodeProperty{
+				property: "status",
+				inner: errUnexpectedToken{
+					actual: xml.StartElement{},
+					expected: []xml.Token{
+						xml.CharData{},
+						xml.EndElement{},
+					},
 				},
 			},
 		},
@@ -248,10 +261,13 @@ func TestUnmarshal(t *testing.T) {
 				"<status>UNKNOWN<unexpected></status>",
 			),
 			schema: SchemaEnum,
-			error: errUnexpectedToken{
-				actual: xml.StartElement{},
-				expected: []xml.Token{
-					xml.EndElement{},
+			error: errFailedToDecodeProperty{
+				property: "status",
+				inner: errUnexpectedToken{
+					actual: xml.StartElement{},
+					expected: []xml.Token{
+						xml.EndElement{},
+					},
 				},
 			},
 		},
@@ -260,7 +276,10 @@ func TestUnmarshal(t *testing.T) {
 				"<status>foo</status>",
 			),
 			schema: SchemaEnum,
-			error:  errUnknownEnum("foo"),
+			error: errFailedToDecodeProperty{
+				property: "status",
+				inner:    errUnknownEnum("foo"),
+			},
 		},
 		"enum with empty value": {
 			input: strings.NewReader(
@@ -281,6 +300,34 @@ func TestUnmarshal(t *testing.T) {
 			expected: map[string]expect{
 				"status": {
 					enum: func() *int32 { i := int32(1); return &i }(),
+				},
+			},
+		},
+		"object": {
+			input: strings.NewReader(
+				"<root><status>PENDING</status><integer>42</integer></root>",
+			),
+			schema: SchemaObject,
+			expected: map[string]expect{
+				"root.status": {
+					enum: func() *int32 { i := int32(1); return &i }(),
+				},
+				"root.integer": {
+					value: int32(42),
+				},
+			},
+		},
+		"object nested": {
+			input: strings.NewReader(
+				"<root><nested><status>PENDING</status><integer>42</integer></nested></root>",
+			),
+			schema: SchemaObjectNested,
+			expected: map[string]expect{
+				"root.nested.status": {
+					enum: func() *int32 { i := int32(1); return &i }(),
+				},
+				"root.nested.integer": {
+					value: int32(42),
 				},
 			},
 		},
@@ -484,6 +531,8 @@ func TestUnmarshal(t *testing.T) {
 
 			var refs = references.NewReferenceStore(0)
 			err = manager.Unmarshal(test.input, refs)
+
+			log.Printf("[%s]: %s", title, refs)
 
 			if test.error != nil {
 				if err == nil {

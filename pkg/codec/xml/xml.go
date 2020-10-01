@@ -91,12 +91,43 @@ func (manager *Manager) Unmarshal(reader io.Reader, refs references.Store) error
 		return nil
 	}
 
-	return decodeElement(
-		xml.NewDecoder(reader),
-		manager.resource,
-		manager.property.Name,
-		manager.property.Path,
-		manager.property.Template,
-		refs,
-	)
+	var decoder = xml.NewDecoder(reader)
+
+	for {
+		tok, err := decoder.Token()
+		if err == io.EOF {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		switch t := tok.(type) {
+		case xml.StartElement:
+			if err := decodeElement(
+				decoder,
+				t,
+				manager.resource,
+				manager.property.Name,
+				manager.property.Path,
+				manager.property.Template,
+				refs,
+			); err != nil {
+				return err
+			}
+
+			continue
+		case xml.EndElement:
+			// stream is closed
+			return nil
+		default:
+			return errUnexpectedToken{
+				actual: t,
+				expected: []xml.Token{
+					xml.StartElement{},
+				},
+			}
+		}
+	}
 }

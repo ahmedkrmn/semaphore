@@ -13,7 +13,7 @@ func encodeElement(encoder *xml.Encoder, name string, template specs.Template, s
 
 	switch {
 	case template.Message != nil:
-		marshaler = NewObject(name, template.Message, store)
+		marshaler = NewObject("", name, "", template.Message, store)
 	case template.Repeated != nil:
 		schema, err := template.Repeated.Template()
 		if err != nil {

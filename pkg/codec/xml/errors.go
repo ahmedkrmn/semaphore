@@ -43,6 +43,19 @@ func (e errUnexpectedToken) Error() string {
 	return fmt.Sprintf(`unexpected element "%T", expected one of [%s]`, e.actual, e.printExpected())
 }
 
+type errFailedToDecodeProperty struct {
+	property string
+	inner    error
+}
+
+func (e errFailedToDecodeProperty) Unwrap() error {
+	return e.inner
+}
+
+func (e errFailedToDecodeProperty) Error() string {
+	return fmt.Sprintf("failed to decode property '%s': %s", e.property, e.inner)
+}
+
 // type token struct {
 // 	kind xml.Token
 // 	name string

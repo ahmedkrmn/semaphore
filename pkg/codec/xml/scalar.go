@@ -86,9 +86,8 @@ func (scalar *Scalar) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement)
 
 				state = waitForClose
 			case xml.EndElement:
-				// store nil value
 				scalar.store.StoreReference(scalar.resource, reference)
-
+				// scalar is closed with nil value
 				return nil
 			default:
 				return errUnexpectedToken{

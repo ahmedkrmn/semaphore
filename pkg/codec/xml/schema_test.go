@@ -8,87 +8,105 @@ import (
 )
 
 var (
-	country = specs.Template{
-		Message: specs.Message{
-			"iso2Code": {
-				Name:  "iso2Code",
-				Path:  "country.iso2Code",
-				Label: labels.Optional,
-				Template: specs.Template{
-					Scalar: &specs.Scalar{
-						Type: types.String,
-					},
-				},
+	propInteger = &specs.Property{
+		Name:  "integer",
+		Path:  "integer",
+		Label: labels.Required,
+		Template: specs.Template{
+			Scalar: &specs.Scalar{
+				Type: types.Int32,
 			},
-			"name": {
-				Name:  "name",
-				Path:  "country.name",
-				Label: labels.Optional,
-				Template: specs.Template{
-					Scalar: &specs.Scalar{
-						Type: types.String,
-					},
-				},
-			},
-			"latitude": {
-				Name:  "iso2Code",
-				Path:  "country.latitude",
-				Label: labels.Optional,
-				Template: specs.Template{
-					Scalar: &specs.Scalar{
-						Type: types.Float,
-					},
-				},
-			},
-			"longitude": {
-				Name:  "name",
-				Path:  "country.longitude",
-				Label: labels.Optional,
-				Template: specs.Template{
-					Scalar: &specs.Scalar{
-						Type: types.Float,
-					},
-				},
-			},
+		},
+	}
+
+	propEnum = &specs.Property{
+		Name:  "status",
+		Path:  "status",
+		Label: labels.Required,
+		Template: specs.Template{
+			Enum: enum,
 		},
 	}
 
 	SchemaEnum = &specs.ParameterMap{
-		Property: &specs.Property{
-			Name:  "status",
-			Path:  "status",
-			Label: labels.Required,
-			Template: specs.Template{
-				Enum: enum,
-			},
-		},
+		Property: propEnum,
 	}
 
 	SchemaScalar = &specs.ParameterMap{
+		Property: propInteger,
+	}
+
+	SchemaObject = &specs.ParameterMap{
 		Property: &specs.Property{
-			Name:  "integer",
-			Path:  "integer",
-			Label: labels.Required,
+			Name:  "root",
+			Label: labels.Optional,
 			Template: specs.Template{
-				Scalar: &specs.Scalar{
-					Type: types.Int32,
+				Message: specs.Message{
+					"status": func() *specs.Property {
+						var clone = propEnum.Clone()
+						clone.Position = 1
+						clone.Path = "root." + clone.Path
+
+						return clone
+					}(),
+					"integer": func() *specs.Property {
+						var clone = propInteger.Clone()
+						clone.Position = 2
+						clone.Path = "root." + clone.Path
+
+						return clone
+					}(),
 				},
 			},
 		},
 	}
 
-	SchemaArray = &specs.Property{
-		Name:  "country",
-		Path:  "country",
-		Label: labels.Optional,
-		Template: specs.Template{
-			Repeated: specs.Repeated{
-				country,
+	SchemaObjectNested = &specs.ParameterMap{
+		Property: &specs.Property{
+			Name:  "root",
+			Label: labels.Optional,
+			Template: specs.Template{
+				Message: specs.Message{
+					"nested": {
+						Name:  "nested",
+						Path:  "root.nested",
+						Label: labels.Optional,
+						Template: specs.Template{
+							Message: specs.Message{
+								"status": func() *specs.Property {
+									var clone = propEnum.Clone()
+									clone.Position = 1
+									clone.Path = "root.nested." + clone.Path
+
+									return clone
+								}(),
+								"integer": func() *specs.Property {
+									var clone = propInteger.Clone()
+									clone.Position = 2
+									clone.Path = "root.nested." + clone.Path
+
+									return clone
+								}(),
+							},
+						},
+					},
+				},
 			},
 		},
 	}
 
-	SchemaObject = &specs.ParameterMap{
+	// SchemaArray = &specs.Property{
+	// 	Name:  "country",
+	// 	Path:  "country",
+	// 	Label: labels.Optional,
+	// 	Template: specs.Template{
+	// 		Repeated: specs.Repeated{
+	// 			country,
+	// 		},
+	// 	},
+	// }
+
+	SchemaComplexObject = &specs.ParameterMap{
 		Property: &specs.Property{
 			Name:  "root",
 			Label: labels.Optional,

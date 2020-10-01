@@ -85,14 +85,12 @@ func (enum *Enum) UnmarshalXML(decoder *xml.Decoder, _ xml.StartElement) error {
 				}
 
 				reference.Enum = &enumValue.Position
-
-				enum.store.StoreReference(enum.resource, reference)
-
 				state = waitForClose
-			case xml.EndElement:
-				// store nil value
-				enum.store.StoreReference(enum.resource, reference)
 
+				enum.store.StoreReference(enum.resource, reference)
+			case xml.EndElement:
+				enum.store.StoreReference(enum.resource, reference)
+				// enum is closed with nil value
 				return nil
 			default:
 				return errUnexpectedToken{
@@ -106,7 +104,7 @@ func (enum *Enum) UnmarshalXML(decoder *xml.Decoder, _ xml.StartElement) error {
 		case waitForClose:
 			switch t := tok.(type) {
 			case xml.EndElement:
-				// element is closed
+				// enum is closed
 				return nil
 			default:
 				return errUnexpectedToken{
