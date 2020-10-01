@@ -355,6 +355,30 @@ func TestUnmarshal(t *testing.T) {
 				},
 			},
 		},
+		"array nested": {
+			input: strings.NewReader(
+				"<root><array>foo</array><array></array><integer>42</integer><array>bar</array></root>",
+			),
+			schema: SchemaNestedArray,
+			expected: map[string]expect{
+				"root.integer": {
+					value: int32(42),
+				},
+				"root.array": {
+					repeated: []expect{
+						{
+							value: "foo",
+						},
+						{
+							value: nil,
+						},
+						{
+							value: "bar",
+						},
+					},
+				},
+			},
+		},
 
 		// "reader error": {
 		// 	input: readerFunc(

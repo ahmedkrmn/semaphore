@@ -8,6 +8,29 @@ import (
 )
 
 var (
+	enum = &specs.Enum{
+		Keys: map[string]*specs.EnumValue{
+			"UNKNOWN": {
+				Key:      "UNKNOWN",
+				Position: 0,
+			},
+			"PENDING": {
+				Key:      "PENDING",
+				Position: 1,
+			},
+		},
+		Positions: map[int32]*specs.EnumValue{
+			0: {
+				Key:      "UNKNOWN",
+				Position: 0,
+			},
+			1: {
+				Key:      "PENDING",
+				Position: 1,
+			},
+		},
+	}
+
 	propString = &specs.Property{
 		Name:  "string",
 		Path:  "string",
@@ -39,6 +62,17 @@ var (
 		},
 	}
 
+	propArray = &specs.Property{
+		Name:  "array",
+		Path:  "array",
+		Label: labels.Optional,
+		Template: specs.Template{
+			Repeated: specs.Repeated{
+				propString.Template,
+			},
+		},
+	}
+
 	SchemaEnum = &specs.ParameterMap{
 		Property: propEnum,
 	}
@@ -48,19 +82,35 @@ var (
 	}
 
 	SchemaArray = &specs.ParameterMap{
+		Property: propArray,
+	}
+
+	SchemaNestedArray = &specs.ParameterMap{
 		Property: &specs.Property{
-			Name:  "array",
-			Path:  "array",
+			Name:  "root",
 			Label: labels.Optional,
 			Template: specs.Template{
-				Repeated: specs.Repeated{
-					propString.Template,
+				Message: specs.Message{
+					"integer": func() *specs.Property {
+						var clone = propInteger.Clone()
+						clone.Position = 1
+						clone.Path = "root." + clone.Path
+
+						return clone
+					}(),
+					"array": func() *specs.Property {
+						var clone = propArray.Clone()
+						clone.Position = 2
+						clone.Path = "root." + clone.Path
+
+						return clone
+					}(),
 				},
 			},
 		},
 	}
 
-	// TODO: array in message
+	// TODO: schema complex
 
 	SchemaObject = &specs.ParameterMap{
 		Property: &specs.Property{
@@ -342,29 +392,6 @@ var (
 						},
 					},
 				},
-			},
-		},
-	}
-
-	enum = &specs.Enum{
-		Keys: map[string]*specs.EnumValue{
-			"UNKNOWN": {
-				Key:      "UNKNOWN",
-				Position: 0,
-			},
-			"PENDING": {
-				Key:      "PENDING",
-				Position: 1,
-			},
-		},
-		Positions: map[int32]*specs.EnumValue{
-			0: {
-				Key:      "UNKNOWN",
-				Position: 0,
-			},
-			1: {
-				Key:      "PENDING",
-				Position: 1,
 			},
 		},
 	}
