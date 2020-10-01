@@ -3,6 +3,7 @@ package xml
 import (
 	"encoding/xml"
 	"io"
+	"log"
 
 	"github.com/jexia/semaphore/pkg/broker/trace"
 	"github.com/jexia/semaphore/pkg/codec"
@@ -122,6 +123,8 @@ func (manager *Manager) Unmarshal(reader io.Reader, refs references.Store) error
 			// stream is closed
 			return nil
 		default:
+			log.Println("foo")
+
 			return errUnexpectedToken{
 				actual: t,
 				expected: []xml.Token{
@@ -130,4 +133,12 @@ func (manager *Manager) Unmarshal(reader io.Reader, refs references.Store) error
 			}
 		}
 	}
+}
+
+func buildPath(prefix, property string) string {
+	if prefix == "" {
+		return property
+	}
+
+	return prefix + "." + property
 }

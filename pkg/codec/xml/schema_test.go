@@ -8,6 +8,17 @@ import (
 )
 
 var (
+	propString = &specs.Property{
+		Name:  "string",
+		Path:  "string",
+		Label: labels.Required,
+		Template: specs.Template{
+			Scalar: &specs.Scalar{
+				Type: types.String,
+			},
+		},
+	}
+
 	propInteger = &specs.Property{
 		Name:  "integer",
 		Path:  "integer",
@@ -35,6 +46,21 @@ var (
 	SchemaScalar = &specs.ParameterMap{
 		Property: propInteger,
 	}
+
+	SchemaArray = &specs.ParameterMap{
+		Property: &specs.Property{
+			Name:  "array",
+			Path:  "array",
+			Label: labels.Optional,
+			Template: specs.Template{
+				Repeated: specs.Repeated{
+					propString.Template,
+				},
+			},
+		},
+	}
+
+	// TODO: array in message
 
 	SchemaObject = &specs.ParameterMap{
 		Property: &specs.Property{
@@ -68,43 +94,40 @@ var (
 			Template: specs.Template{
 				Message: specs.Message{
 					"nested": {
-						Name:  "nested",
-						Path:  "root.nested",
-						Label: labels.Optional,
+						Position: 1,
+						Name:     "nested",
+						Path:     "root.nested",
+						Label:    labels.Optional,
 						Template: specs.Template{
 							Message: specs.Message{
 								"status": func() *specs.Property {
 									var clone = propEnum.Clone()
 									clone.Position = 1
-									// clone.Path = "root.nested." + clone.Path
+									clone.Path = "root.nested." + clone.Path
 
 									return clone
 								}(),
 								"integer": func() *specs.Property {
 									var clone = propInteger.Clone()
 									clone.Position = 2
-									// clone.Path = "root.nested." + clone.Path
+									clone.Path = "root.nested." + clone.Path
 
 									return clone
 								}(),
 							},
 						},
 					},
+					"string": func() *specs.Property {
+						var clone = propString.Clone()
+						clone.Position = 2
+						clone.Path = "root." + clone.Path
+
+						return clone
+					}(),
 				},
 			},
 		},
 	}
-
-	// SchemaArray = &specs.Property{
-	// 	Name:  "country",
-	// 	Path:  "country",
-	// 	Label: labels.Optional,
-	// 	Template: specs.Template{
-	// 		Repeated: specs.Repeated{
-	// 			country,
-	// 		},
-	// 	},
-	// }
 
 	SchemaComplexObject = &specs.ParameterMap{
 		Property: &specs.Property{

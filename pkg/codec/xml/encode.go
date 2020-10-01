@@ -26,7 +26,7 @@ func encodeElement(encoder *xml.Encoder, name string, template specs.Template, s
 			return err
 		}
 
-		marshaler = NewArray(name, schema, template.Repeated, template.Reference, store)
+		marshaler = NewArray("", "", name, schema, template.Repeated, template.Reference, store)
 	case template.Enum != nil:
 		marshaler = NewEnum("", "", name, template.Enum, template.Reference, store)
 	case template.Scalar != nil:

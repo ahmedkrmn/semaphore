@@ -319,7 +319,7 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"object nested": {
 			input: strings.NewReader(
-				"<root><nested><status>PENDING</status><integer>42</integer></nested></root>",
+				"<root><nested><status>PENDING</status><integer>42</integer></nested><string>foobar</string></root>",
 			),
 			schema: SchemaObjectNested,
 			expected: map[string]expect{
@@ -328,6 +328,30 @@ func TestUnmarshal(t *testing.T) {
 				},
 				"root.nested.integer": {
 					value: int32(42),
+				},
+				"root.string": {
+					value: "foobar",
+				},
+			},
+		},
+		"array of strings": {
+			input: strings.NewReader(
+				"<array>foo</array><array></array><array>bar</array>",
+			),
+			schema: SchemaArray,
+			expected: map[string]expect{
+				"array": {
+					repeated: []expect{
+						{
+							value: "foo",
+						},
+						{
+							value: nil,
+						},
+						{
+							value: "bar",
+						},
+					},
 				},
 			},
 		},
@@ -578,7 +602,7 @@ func assert(t *testing.T, resource string, path string, store references.Store, 
 
 	if output.enum != nil {
 		if ref.Enum == nil {
-			t.Errorf("reference %q was expected to have a enum value", path)
+			t.Fatalf("reference %q was expected to have a enum value", path)
 		}
 
 		if *output.enum != *ref.Enum {
@@ -590,10 +614,10 @@ func assert(t *testing.T, resource string, path string, store references.Store, 
 
 	if output.repeated != nil {
 		if ref.Repeated == nil {
-			t.Errorf("reference %q was expected to have a repeated value", path)
+			t.Fatalf("reference %q was expected to have a repeated value", path)
 		}
 
-		if expected, actual := len(ref.Repeated), len(ref.Repeated); actual != expected {
+		if expected, actual := len(output.repeated), len(ref.Repeated); actual != expected {
 			t.Errorf("invalid number of repeated values, expected %d, got %d", expected, actual)
 		}
 

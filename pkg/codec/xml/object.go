@@ -47,7 +47,7 @@ func (object *Object) MarshalXML(encoder *xml.Encoder, _ xml.StartElement) error
 	return encoder.EncodeToken(xml.EndElement{Name: start.Name})
 }
 
-// UnmarshalXML decodes XML input into the reference store.
+// UnmarshalXML decodes XML input into the receiver of type specs.Message.
 func (object *Object) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
 	for {
 		tok, err := decoder.Token()

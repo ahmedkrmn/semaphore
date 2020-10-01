@@ -2,9 +2,7 @@ package xml
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
-	"log"
 
 	"github.com/jexia/semaphore/pkg/references"
 	"github.com/jexia/semaphore/pkg/specs"
@@ -20,19 +18,18 @@ func decodeElement(decoder *xml.Decoder, start xml.StartElement, resource, prefi
 		}
 	}()
 
-	log.Println("<", start.Name.Local, ">", name)
-
-	if start.Name.Local != name {
-		return fmt.Errorf("unexpected '%s', expected '%s'", start.Name.Local, name)
-	}
-
 	var unmarshaler xml.Unmarshaler
 
 	switch {
 	case template.Message != nil:
 		unmarshaler = NewObject(resource, buildPath(prefix, name), name, template.Message, store)
 	case template.Repeated != nil:
-		return errors.New("repeated: not implemented")
+		schema, err := template.Repeated.Template()
+		if err != nil {
+			return err
+		}
+
+		unmarshaler = NewArray(resource, prefix, name, schema, template.Repeated, template.Reference, store)
 	case template.Enum != nil:
 		unmarshaler = NewEnum(resource, prefix, name, template.Enum, template.Reference, store)
 	case template.Scalar != nil:
@@ -42,12 +39,4 @@ func decodeElement(decoder *xml.Decoder, start xml.StartElement, resource, prefi
 	}
 
 	return unmarshaler.UnmarshalXML(decoder, start)
-}
-
-func buildPath(prefix, property string) string {
-	if prefix == "" {
-		return property
-	}
-
-	return prefix + "." + property
 }
