@@ -60,7 +60,12 @@ func (manager *Manager) Marshal(refs references.Store) (io.Reader, error) {
 	)
 
 	go func() {
-		if err := encodeElement(encoder, manager.property.Name, manager.property.Template, refs); err != nil {
+		if err := encodeElement(
+			encoder,
+			manager.property.Name,
+			manager.property.Template,
+			refs,
+		); err != nil {
 			writer.CloseWithError(err)
 
 			return
@@ -82,5 +87,16 @@ func (manager *Manager) Marshal(refs references.Store) (io.Reader, error) {
 // This method is called during runtime to decode a new message and store it inside
 // the given reference store.
 func (manager *Manager) Unmarshal(reader io.Reader, refs references.Store) error {
-	return nil
+	if manager.property == nil {
+		return nil
+	}
+
+	return decodeElement(
+		xml.NewDecoder(reader),
+		manager.resource,
+		manager.property.Name,
+		manager.property.Path,
+		manager.property.Template,
+		refs,
+	)
 }

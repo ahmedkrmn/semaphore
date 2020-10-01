@@ -9,16 +9,20 @@ import (
 
 // Enum is a vrapper over specs.Enum providing XML encoding/decoding.
 type Enum struct {
+	resource  string
 	name      string
+	path      string
 	enum      *specs.Enum
 	reference *specs.PropertyReference
 	store     references.Store
 }
 
 // NewEnum creates a new enum by wrapping provided specs.Enum.
-func NewEnum(name string, enum *specs.Enum, reference *specs.PropertyReference, store references.Store) *Enum {
+func NewEnum(resource, name, path string, enum *specs.Enum, reference *specs.PropertyReference, store references.Store) *Enum {
 	return &Enum{
+		resource:  resource,
 		name:      name,
+		path:      path,
 		enum:      enum,
 		reference: reference,
 		store:     store,
@@ -50,4 +54,68 @@ func (enum *Enum) MarshalXML(encoder *xml.Encoder, _ xml.StartElement) error {
 	}
 
 	return encoder.EncodeElement(value, start)
+}
+
+// UnmarshalXML unmarshals enum value from XML stream.
+func (enum *Enum) UnmarshalXML(decoder *xml.Decoder, _ xml.StartElement) error {
+	const (
+		waitForValue int = iota
+		waitForClose
+	)
+
+	var state int
+
+	for {
+		tok, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+
+		switch state {
+		case waitForValue:
+			var reference = &references.Reference{
+				Path: enum.path,
+			}
+
+			switch t := tok.(type) {
+			case xml.CharData:
+				enumValue, ok := enum.enum.Keys[string(t)]
+				if !ok {
+					return errUnknownEnum(t)
+				}
+
+				reference.Enum = &enumValue.Position
+
+				enum.store.StoreReference(enum.resource, reference)
+
+				state = waitForClose
+			case xml.EndElement:
+				// store nil value
+				enum.store.StoreReference(enum.resource, reference)
+
+				return nil
+			default:
+				return errUnexpectedToken{
+					actual: t,
+					expected: []xml.Token{
+						xml.CharData{},
+						xml.EndElement{},
+					},
+				}
+			}
+		case waitForClose:
+			switch t := tok.(type) {
+			case xml.EndElement:
+				// element is closed
+				return nil
+			default:
+				return errUnexpectedToken{
+					actual: t,
+					expected: []xml.Token{
+						xml.EndElement{},
+					},
+				}
+			}
+		}
+	}
 }

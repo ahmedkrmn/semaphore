@@ -53,6 +53,30 @@ var (
 		},
 	}
 
+	SchemaEnum = &specs.ParameterMap{
+		Property: &specs.Property{
+			Name:  "status",
+			Path:  "status",
+			Label: labels.Required,
+			Template: specs.Template{
+				Enum: enum,
+			},
+		},
+	}
+
+	SchemaScalar = &specs.ParameterMap{
+		Property: &specs.Property{
+			Name:  "integer",
+			Path:  "integer",
+			Label: labels.Required,
+			Template: specs.Template{
+				Scalar: &specs.Scalar{
+					Type: types.Int32,
+				},
+			},
+		},
+	}
+
 	SchemaArray = &specs.Property{
 		Name:  "country",
 		Path:  "country",
