@@ -11,19 +11,19 @@ import (
 // Scalar is a wrapper for specs.Scalar providing XML encoding/decoding.
 type Scalar struct {
 	resource  string
+	prefix    string
 	name      string
-	path      string
 	scalar    *specs.Scalar
 	reference *specs.PropertyReference
 	store     references.Store
 }
 
 // NewScalar creates a wrapper for specs.Scalar to be XML encoded/decoded.
-func NewScalar(resource, name, path string, scalar *specs.Scalar, reference *specs.PropertyReference, store references.Store) *Scalar {
+func NewScalar(resource, prefix, name string, scalar *specs.Scalar, reference *specs.PropertyReference, store references.Store) *Scalar {
 	return &Scalar{
 		resource:  resource,
+		prefix:    prefix,
 		name:      name,
-		path:      path,
 		scalar:    scalar,
 		reference: reference,
 		store:     store,
@@ -73,7 +73,7 @@ func (scalar *Scalar) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement)
 		switch state {
 		case waitForValue:
 			var reference = &references.Reference{
-				Path: scalar.path,
+				Path: buildPath(scalar.prefix, scalar.name),
 			}
 
 			switch t := tok.(type) {

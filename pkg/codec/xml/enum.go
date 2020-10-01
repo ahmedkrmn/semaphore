@@ -10,6 +10,7 @@ import (
 // Enum is a vrapper over specs.Enum providing XML encoding/decoding.
 type Enum struct {
 	resource  string
+	prefix    string
 	name      string
 	path      string
 	enum      *specs.Enum
@@ -18,11 +19,11 @@ type Enum struct {
 }
 
 // NewEnum creates a new enum by wrapping provided specs.Enum.
-func NewEnum(resource, name, path string, enum *specs.Enum, reference *specs.PropertyReference, store references.Store) *Enum {
+func NewEnum(resource, prefix, name string, enum *specs.Enum, reference *specs.PropertyReference, store references.Store) *Enum {
 	return &Enum{
 		resource:  resource,
+		prefix:    prefix,
 		name:      name,
-		path:      path,
 		enum:      enum,
 		reference: reference,
 		store:     store,
@@ -74,7 +75,7 @@ func (enum *Enum) UnmarshalXML(decoder *xml.Decoder, _ xml.StartElement) error {
 		switch state {
 		case waitForValue:
 			var reference = &references.Reference{
-				Path: enum.path,
+				Path: buildPath(enum.prefix, enum.name),
 			}
 
 			switch t := tok.(type) {

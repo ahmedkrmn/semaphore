@@ -109,8 +109,8 @@ func (manager *Manager) Unmarshal(reader io.Reader, refs references.Store) error
 				decoder,
 				t,
 				manager.resource,
+				"", // prefix
 				manager.property.Name,
-				manager.property.Path,
 				manager.property.Template,
 				refs,
 			); err != nil {

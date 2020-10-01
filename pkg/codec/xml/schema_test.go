@@ -76,14 +76,14 @@ var (
 								"status": func() *specs.Property {
 									var clone = propEnum.Clone()
 									clone.Position = 1
-									clone.Path = "root.nested." + clone.Path
+									// clone.Path = "root.nested." + clone.Path
 
 									return clone
 								}(),
 								"integer": func() *specs.Property {
 									var clone = propInteger.Clone()
 									clone.Position = 2
-									clone.Path = "root.nested." + clone.Path
+									// clone.Path = "root.nested." + clone.Path
 
 									return clone
 								}(),

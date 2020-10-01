@@ -10,6 +10,7 @@ import (
 // Object represents an XML object.
 type Object struct {
 	resource string
+	prefix   string
 	name     string
 	path     string
 	message  specs.Message
@@ -17,11 +18,11 @@ type Object struct {
 }
 
 // NewObject creates a new object by wrapping provided specs.Message.
-func NewObject(resource, name, path string, message specs.Message, store references.Store) *Object {
+func NewObject(resource, prefix, name string, message specs.Message, store references.Store) *Object {
 	return &Object{
 		resource: resource,
+		prefix:   prefix,
 		name:     name,
-		path:     path,
 		message:  message,
 		store:    store,
 	}
@@ -61,11 +62,10 @@ func (object *Object) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement)
 				return errUndefinedProperty(t.Name.Local)
 			}
 
-			if err := decodeElement(decoder, t, object.resource, property.Name, property.Path, property.Template, object.store); err != nil {
+			if err := decodeElement(decoder, t, object.resource, object.prefix, property.Name, property.Template, object.store); err != nil {
 				return err
 			}
 		case xml.EndElement:
-
 			// object is closed
 			return nil
 		}
