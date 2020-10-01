@@ -119,6 +119,9 @@ func (manager *Manager) Unmarshal(reader io.Reader, refs references.Store) error
 			}
 
 			continue
+		case xml.CharData:
+			// ignore "\n", "\t" ...
+			continue
 		case xml.EndElement:
 			// stream is closed
 			return nil

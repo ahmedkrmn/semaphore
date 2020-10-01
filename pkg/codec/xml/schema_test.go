@@ -110,8 +110,6 @@ var (
 		},
 	}
 
-	// TODO: schema complex
-
 	SchemaObject = &specs.ParameterMap{
 		Property: &specs.Property{
 			Name:  "root",
@@ -179,7 +177,7 @@ var (
 		},
 	}
 
-	SchemaComplexObject = &specs.ParameterMap{
+	SchemaObjectComplex = &specs.ParameterMap{
 		Property: &specs.Property{
 			Name:  "root",
 			Label: labels.Optional,

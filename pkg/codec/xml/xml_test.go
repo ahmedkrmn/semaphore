@@ -131,7 +131,7 @@ func TestMarshal(t *testing.T) {
 
 	for title, test := range tests {
 		t.Run(title, func(t *testing.T) {
-			manager, err := constructor.New("mock", SchemaComplexObject)
+			manager, err := constructor.New("mock", SchemaObjectComplex)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -305,7 +305,10 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"object": {
 			input: strings.NewReader(
-				"<root><status>PENDING</status><integer>42</integer></root>",
+				`<root>
+					<status>PENDING</status>
+					<integer>42</integer>
+				</root>`,
 			),
 			schema: SchemaObject,
 			expected: map[string]expect{
@@ -319,7 +322,13 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"object nested": {
 			input: strings.NewReader(
-				"<root><nested><status>PENDING</status><integer>42</integer></nested><string>foobar</string></root>",
+				`<root>
+					<nested>
+						<status>PENDING</status>
+						<integer>42</integer>
+					</nested>
+					<string>foobar</string>
+				</root>`,
 			),
 			schema: SchemaObjectNested,
 			expected: map[string]expect{
@@ -336,7 +345,9 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"array of strings": {
 			input: strings.NewReader(
-				"<array>foo</array><array></array><array>bar</array>",
+				`<array>foo</array>
+				<array></array>
+				<array>bar</array>`,
 			),
 			schema: SchemaArray,
 			expected: map[string]expect{
@@ -357,7 +368,12 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"array nested": {
 			input: strings.NewReader(
-				"<root><array>foo</array><array></array><integer>42</integer><array>bar</array></root>",
+				`<root>
+					<array>foo</array>
+					<array></array>
+					<integer>42</integer>
+					<array>bar</array>
+				</root>`,
 			),
 			schema: SchemaNestedArray,
 			expected: map[string]expect{
@@ -379,190 +395,81 @@ func TestUnmarshal(t *testing.T) {
 				},
 			},
 		},
-
-		// "reader error": {
-		// 	input: readerFunc(
-		// 		func([]byte) (int, error) {
-		// 			return 0, errors.New("failed")
-		// 		},
-		// 	),
-		// 	error: errors.New("failed"),
-		// },
-		// "unknown enum value": {
-		// 	input: strings.NewReader(
-		// 		"<mock><status>PENDING</status><another_status>DONE</another_status></mock>",
-		// 	),
-		// 	error: errUnknownEnum("DONE"),
-		// },
-		// "unknown enum value (repeated)": {
-		// 	input: strings.NewReader(
-		// 		"<mock><repeating_enum>DONE</repeating_enum></mock>",
-		// 	),
-		// 	error: errUnknownEnum("DONE"),
-		// },
-		// "type mismatch": {
-		// 	input: strings.NewReader(
-		// 		"<mock><numeric>not a number</numeric></mock>",
-		// 	),
-		// 	error: errors.New(""), // error returned by ParseInt()
-		// },
-		// "type mismatch (repeated)": {
-		// 	input: strings.NewReader(
-		// 		"<mock><repeating_numeric>not a number</repeating_numeric></mock>",
-		// 	),
-		// 	error: errors.New(""), // error returned by ParseInt()
-		// },
-		// "empty reader": {
-		// 	input: strings.NewReader(""),
-		// },
-
-		//
-		// "simple (+ignore empty)": {
-		// 	input: strings.NewReader(
-		// 		"<root><nested></nested><message>hello world</message><another_message>dlrow olleh</another_message></root>",
-		// 	),
-		// 	schema: SchemaObject,
-		// 	expected: map[string]expect{
-		// 		"message": {
-		// 			value: "hello world",
-		// 		},
-		// 		"another_message": {
-		// 			value: "dlrow olleh",
-		// 		},
-		// 	},
-		// },
-		//
-
-		// "enum": {
-		// 	input: strings.NewReader(
-		// 		"<mock><status>PENDING</status><another_status>UNKNOWN</another_status></mock>",
-		// 	),
-		// 	expected: map[string]expect{
-		// 		"status": {
-		// 			enum: func() *int32 { i := int32(1); return &i }(),
-		// 		},
-		// 		"another_status": {
-		// 			enum: func() *int32 { i := int32(0); return &i }(),
-		// 		},
-		// 	},
-		// },
-		// "nested": {
-		// 	input: strings.NewReader(
-		// 		"<mock><nested><first>foo</first><second>bar</second></nested></mock>",
-		// 	),
-		// 	expected: map[string]expect{
-		// 		"nested.first": {
-		// 			value: "foo",
-		// 		},
-		// 		"nested.second": {
-		// 			value: "bar",
-		// 		},
-		// 	},
-		// },
-		// "repeated string": {
-		// 	//  TODO: do not ignore empty blocks
-		// 	input: strings.NewReader(
-		// 		"<mock><repeating_string>repeating one</repeating_string><repeating_string></repeating_string><repeating_string>repeating two</repeating_string></mock>",
-		// 	),
-		// 	expected: map[string]expect{
-		// 		"repeating_string": {
+		// 		"root.array": {
 		// 			repeated: []expect{
 		// 				{
-		// 					value: "repeating one",
+		// 					value: "foo",
 		// 				},
 		// 				{
-		// 					value: "repeating two",
+		// 					value: nil,
+		// 				},
+		// 				{
+		// 					value: "bar",
 		// 				},
 		// 			},
 		// 		},
 		// 	},
 		// },
-		// "repeated enum": {
-		// 	input: strings.NewReader(
-		// 		"<mock><repeating_enum>UNKNOWN</repeating_enum><repeating_enum>PENDING</repeating_enum></mock>",
-		// 	),
-		// 	expected: map[string]expect{
-		// 		"repeating_enum": {
-		// 			repeated: []expect{
-		// 				{
-		// 					enum: func() *int32 { i := int32(0); return &i }(),
-		// 				},
-		// 				{
-		// 					enum: func() *int32 { i := int32(1); return &i }(),
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// "repeated nested": {
-		// 	input: strings.NewReader(
-		// 		"<mock><repeating><value>repeating one</value></repeating><repeating><value>repeating two</value></repeating></mock>",
-		// 	),
-		// 	expected: map[string]expect{
-		// 		"repeating": {
-		// 			repeated: []expect{
-		// 				{
-		// 					nested: map[string]expect{
-		// 						"repeating.value": {
-		// 							value: "repeating one",
-		// 						},
-		// 					},
-		// 				},
-		// 				{
-		// 					nested: map[string]expect{
-		// 						"repeating.value": {
-		// 							value: "repeating two",
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// "complex": {
-		// 	input: strings.NewReader(
-		// 		"<mock><repeating_string>repeating one</repeating_string><repeating_string>repeating two</repeating_string><message>hello world</message><nested><first>foo</first><second>bar</second></nested><repeating><value>repeating one</value></repeating><repeating><value>repeating two</value></repeating></mock>",
-		// 	),
-		// 	expected: map[string]expect{
-		// 		"repeating_string": {
-		// 			repeated: []expect{
-		// 				{
-		// 					value: "repeating one",
-		// 				},
-		// 				{
-		// 					value: "repeating two",
-		// 				},
-		// 			},
-		// 		},
-		// 		"message": {
-		// 			value: "hello world",
-		// 		},
-		// 		"nested.first": {
-		// 			value: "foo",
-		// 		},
-		// 		"nested.second": {
-		// 			value: "bar",
-		// 		},
-		// 		"repeating": {
-		// 			repeated: []expect{
-		// 				{
-		// 					nested: map[string]expect{
-		// 						"repeating.value": {
-		// 							value: "repeating one",
-		// 						},
-		// 					},
-		// 				},
-		// 				{
-		// 					nested: map[string]expect{
-		// 						"repeating.value": {
-		// 							value: "repeating two",
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		"complex": {
+			input: strings.NewReader(
+				`<root>
+				<numeric>42</numeric>
+				<message>hello world</message>
+				<nested>
+					<first>foo</first>
+					<second>bar</second>
+				</nested>
+				<repeating_string>foo</repeating_string>
+				<repeating_string>bar</repeating_string>
+				<repeating>
+					<value>repeating one</value>
+				</repeating>
+				<repeating>
+					<value>repeating two</value>
+				</repeating>
+			</root>`,
+			),
+			schema: SchemaObjectComplex,
+			expected: map[string]expect{
+				"root.repeating_string": {
+					repeated: []expect{
+						{
+							value: "foo",
+						},
+						{
+							value: "bar",
+						},
+					},
+				},
+				"root.message": {
+					value: "hello world",
+				},
+				"root.nested.first": {
+					value: "foo",
+				},
+				"root.nested.second": {
+					value: "bar",
+				},
+				"root.repeating": {
+					repeated: []expect{
+						{
+							nested: map[string]expect{
+								"value": {
+									value: "repeating one",
+								},
+							},
+						},
+						{
+							nested: map[string]expect{
+								"value": {
+									value: "repeating two",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for title, test := range tests {
@@ -612,6 +519,9 @@ type expect struct {
 }
 
 func assert(t *testing.T, resource string, path string, store references.Store, output expect) {
+	log.Println("LOAD:", resource, path)
+	log.Println("STORE:", store)
+
 	ref := store.Load(resource, path)
 
 	if ref == nil {
@@ -622,6 +532,8 @@ func assert(t *testing.T, resource string, path string, store references.Store, 
 		if ref.Value != output.value {
 			t.Errorf("reference %q was expected to be %T(%v), got %T(%v)", path, output.value, output.value, ref.Value, ref.Value)
 		}
+
+		return
 	}
 
 	if output.enum != nil {
@@ -636,29 +548,27 @@ func assert(t *testing.T, resource string, path string, store references.Store, 
 		return
 	}
 
+	if output.nested != nil {
+		for key, expected := range output.nested {
+			assert(t, resource, key, store, expected)
+		}
+
+		return
+	}
+
 	if output.repeated != nil {
 		if ref.Repeated == nil {
 			t.Fatalf("reference %q was expected to have a repeated value", path)
 		}
 
 		if expected, actual := len(output.repeated), len(ref.Repeated); actual != expected {
-			t.Errorf("invalid number of repeated values, expected %d, got %d", expected, actual)
+			t.Fatalf("invalid number of repeated values, expected %d, got %d", expected, actual)
 		}
 
+		log.Println("<<<<<<<<<", ref.Repeated)
+
 		for index, expected := range output.repeated {
-			if expected.value != nil || expected.enum != nil {
-				assert(t, "", "", ref.Repeated[index], expected)
-
-				continue
-			}
-
-			if expected.nested != nil {
-				for key, expected := range expected.nested {
-					assert(t, resource, key, ref.Repeated[index], expected)
-				}
-
-				continue
-			}
+			assert(t, "", "", ref.Repeated[index], expected)
 		}
 	}
 }

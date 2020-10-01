@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-// var errNotAnObject = errors.New("not an object")
-
 type errUndefinedProperty string
 
 func (e errUndefinedProperty) Error() string {
@@ -55,29 +53,3 @@ func (e errFailedToDecodeProperty) Unwrap() error {
 func (e errFailedToDecodeProperty) Error() string {
 	return fmt.Sprintf("failed to decode property '%s': %s", e.property, e.inner)
 }
-
-// type token struct {
-// 	kind xml.Token
-// 	name string
-// }
-//
-// func (t token) String() string {
-// 	switch {
-// 	case t.kind != nil && t.name != "":
-// 		return fmt.Sprintf("%T<%s>)", t.kind, t.name)
-// 	case t.kind != nil:
-// 		return fmt.Sprintf("%T", t.kind)
-// 	case t.name != "":
-// 		return fmt.Sprintf("<%s>", t.name)
-// 	default:
-// 		return "<empty>"
-// 	}
-// }
-//
-// type errUnexpectedTag struct {
-// 	actual, expected token
-// }
-//
-// func (e errUnexpectedTag) Error() string {
-// 	return fmt.Sprintf("unexpected tag '%s', expected '%s'", e.actual, e.expected)
-// }
