@@ -11,7 +11,10 @@ import (
 func encodeElement(encoder *xml.Encoder, name string, template specs.Template, store references.Store) (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("failed to encode property '%s': %w", name, err)
+			err = errFailedToEncodeProperty{
+				property: name,
+				inner:    err,
+			}
 		}
 	}()
 

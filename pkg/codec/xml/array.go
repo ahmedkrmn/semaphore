@@ -74,6 +74,8 @@ func (array *Array) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) e
 		array.store.StoreReference(array.resource, reference)
 	}
 
+	// TODO: fixme
+
 	if err := decodeElement(decoder, start, "", "", "", array.template, store); err != nil {
 		return err
 	}

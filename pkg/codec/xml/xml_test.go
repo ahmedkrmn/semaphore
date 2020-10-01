@@ -395,6 +395,8 @@ func TestUnmarshal(t *testing.T) {
 				},
 			},
 		},
+		// TODO: fixme!!!
+
 		// 		"root.array": {
 		// 			repeated: []expect{
 		// 				{

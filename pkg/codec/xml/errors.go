@@ -41,14 +41,23 @@ func (e errUnexpectedToken) Error() string {
 	return fmt.Sprintf(`unexpected element "%T", expected one of [%s]`, e.actual, e.printExpected())
 }
 
+type errFailedToEncodeProperty struct {
+	property string
+	inner    error
+}
+
+func (e errFailedToEncodeProperty) Unwrap() error { return e.inner }
+
+func (e errFailedToEncodeProperty) Error() string {
+	return fmt.Sprintf("failed to encode property '%s': %s", e.property, e.inner)
+}
+
 type errFailedToDecodeProperty struct {
 	property string
 	inner    error
 }
 
-func (e errFailedToDecodeProperty) Unwrap() error {
-	return e.inner
-}
+func (e errFailedToDecodeProperty) Unwrap() error { return e.inner }
 
 func (e errFailedToDecodeProperty) Error() string {
 	return fmt.Sprintf("failed to decode property '%s': %s", e.property, e.inner)
